@@ -459,7 +459,7 @@ def predict(image_input, symptoms_text, label_names, box_size=50, model_dict=Non
 
 
 """
-# 1. Инициализация
+# Инициализация
 tokenizer = AutoTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
 policy_model = SymptomPolicyCNN(tokenizer.vocab_size, CONFIG["embed_dim"]).to(CONFIG["device"])
 policy_ckpt = torch.load(CONFIG["model_path"], map_location=CONFIG["device"])
@@ -512,8 +512,8 @@ def load_images(image_paths):
 
     # Пустые строки симптомов
     test_texts = [
-        "",                             # настоящая пустая строка
-        "[NO_SYMPTOMS_PROVIDED]",       # токен отсутствующих симптомов
+        "",                  
+        "[NO_SYMPTOMS_PROVIDED]",     
     ]
 
     for image, name in image_list:
