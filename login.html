@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login page</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #8fd3f4 0%, #84fab0 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    }
+    .wrapper {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 2rem;
+      box-shadow: 0 8px 40px 0 rgba(34, 84, 175, 0.17), 0 1.5px 6px 0 rgba(0,0,0,0.07);
+      padding: 2.8rem 2.3rem 2rem 2.3rem;
+      min-width: 370px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 1.2s cubic-bezier(.8,-0.01,.42,.99);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px);}
+      to   { opacity: 1; transform: translateY(0);}
+    }
+    form h1 {
+      margin-bottom: 1.8rem;
+      font-weight: 700;
+      color: #227bc2;
+      font-size: 2.1rem;
+      letter-spacing: 0.7px;
+    }
+    .input-box {
+      width: 100%;
+      position: relative;
+      margin-bottom: 1.3rem;
+      
+    }
+    .input-box input {
+      width: 100%;
+      padding: 13px 44px 13px 16px;
+      border: none;
+      outline: none;
+      border-radius: 1rem;
+      background: #f1f8ff;
+      box-shadow: 0 2px 8px 0 rgba(0,95,255,0.06);
+      font-size: 1.1rem;
+      transition: box-shadow 0.2s;
+      box-sizing: border-box;
+    }
+    .input-box input:focus {
+      box-shadow: 0 4px 16px 0 rgba(0,95,255,0.11);
+      background: #e9f4fe;
+    }
+    .input-box i {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #b3d2ee;
+      font-size: 1.4rem;
+      pointer-events: none;
+    }
+
+    .input-box.error input {
+      border: 2px solid #df3d3d !important;
+      background: #fff5f5;
+    }
+
+    .input-box .error-icon {
+      position: absolute;
+      right: 38px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #df3d3d;
+      font-size: 1.3rem;
+      display: none;
+      pointer-events: none;
+    }
+
+    .input-box.error .error-icon {
+      display: block;
+    }
+
+    .remember {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.7rem;
+      font-size: 0.97rem;
+      color: #4387b5;
+    }
+    .remember input[type="checkbox"] {
+      accent-color: #46a3eb;
+      margin-right: 5px;
+      transform: scale(1.12);
+    }
+    .remember a {
+      color: #227bc2;
+      text-decoration: none;
+      transition: color 0.16s;
+      font-weight: 500;
+    }
+    .remember a:hover {
+      color: #3084e8;
+      text-decoration: underline;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px 0;
+      border-radius: 1rem;
+      border: none;
+      background: linear-gradient(90deg,#51c6fa 0%,#3d9dd4 100%);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1.18rem;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      transition: background 0.18s, box-shadow 0.18s;
+      box-shadow: 0 2px 16px 0 rgba(39,126,209,0.10);
+    }
+    .btn:hover {
+      background: linear-gradient(92deg,#47aee7 0%,#2c85be 100%);
+      box-shadow: 0 4px 22px 0 rgba(39,126,209,0.13);
+    }
+    .register-link {
+      margin-top: 1.8rem;
+      text-align: center;
+      color: #7c9dc5;
+    }
+    .register-link a {
+      color: #227bc2;
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 2px;
+      transition: color 0.13s;
+    }
+    .register-link a:hover {
+      color: #0b58a2;
+      text-decoration: underline;
+    }
+
+    .modal {
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(21,44,66,0.23);
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeInModalBg 0.28s;
+    }
+    @keyframes fadeInModalBg {
+      from { background: rgba(21,44,66,0); }
+      to { background: rgba(21,44,66,0.23);}
+    }
+    .modal-content {
+      background: #fff;
+      padding: 2.2rem 2.3rem 1.5rem 2.3rem;
+      border-radius: 1.2rem;
+      min-width: 350px;
+      min-height: 260px;
+      box-shadow: 0 4px 36px 0 rgba(34, 123, 194, 0.13);
+      position: relative;
+      display: flex; flex-direction: column; gap: 1.1rem;
+      align-items: center;
+      animation: showModal 0.38s cubic-bezier(.6,-0.07,.3,1.09);
+    }
+    @keyframes showModal {
+      from { opacity: 0; transform: translateY(-30px) scale(.98);}
+      to   { opacity: 1; transform: translateY(0) scale(1);}
+    }
+    .close {
+      position: absolute; top: 11px; right: 16px; font-size: 26px; cursor: pointer; color: #6da3ce;
+      font-weight: 700; transition: color 0.17s;
+    }
+    .close:hover { color: #2067a7; }
+    .modal-content h1 {
+      margin-top: 0.3rem;
+      margin-bottom: 0.9rem;
+      font-weight: 700;
+      color: #227bc2;
+      font-size: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+    .modal-content input {
+      width: 100%; padding: 12px 16px; font-size: 1.08rem; border-radius: 0.9rem; border: 1.2px solid #e7e7e7;
+      background: #f7fafd; outline: none; transition: border 0.16s, background 0.16s;
+      box-sizing: border-box;
+    }
+    .modal-content input:focus {
+      border: 1.2px solid #89c7f4; background: #eef7fc;
+    }
+    .modal-content button {
+      width: 100%; padding: 12px 0; font-size: 1.11rem;
+      border-radius: 1rem; border: none; background: linear-gradient(90deg,#51c6fa 0%,#3d9dd4 100%);
+      color: #fff; font-weight: 600; letter-spacing: 0.5px; margin-top: 0.4rem;
+      box-shadow: 0 1.5px 8px 0 rgba(39,126,209,0.12);
+      cursor: pointer; transition: background 0.17s, box-shadow 0.17s;
+    }
+    .modal-content button:hover {
+      background: linear-gradient(92deg,#47aee7 0%,#2c85be 100%);
+      box-shadow: 0 4px 18px 0 rgba(39,126,209,0.13);
+    }
+    #register-modal { display: none; }
+
+    .error-message {
+      color: #d54343;
+      background: #fff1f1;
+      border: 1.1px solid #e7c1c1;
+      border-radius: 0.7rem;
+      margin: 1rem 0 0 0;
+      padding: 11px 14px;
+      font-size: 1rem;
+      text-align: center;
+      display: none;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      box-shadow: 0 1px 5px 0 rgba(230,39,39,0.04);
+      box-sizing: border-box;
+    }
+
+  </style>
+</head>
+<body>
+
+  
+  <div class="wrapper">
+    <form autocomplete="off">
+      <h1>Login</h1>
+      <div class="input-box">
+        <input type="text" id="login-username" placeholder="Username" required>
+        <i class='bx bxs-user-circle'></i>
+        <span class="error-icon"><i class='bx bxs-error-circle'></i></span>
+      </div>
+      <div class="input-box">
+        <input type="password" id="login-password" placeholder="Password" required>
+        <i class='bx bxs-lock-alt'></i>
+        <span class="error-icon"><i class='bx bxs-error-circle'></i></span>
+      </div>
+      <div class="remember">
+        <label>
+          <input type="checkbox">Remember me
+        </label>
+        <a href="#">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn">Login</button>
+      <div id="login-error" class="error-message"></div>
+      <div class="register-link">
+        <p>Don't have an account? <a href="#" id="register-link-a">Register</a></p>
+      </div>
+    </form>
+  </div>
+
+  <div id="register-modal" class="modal">
+    <div class="modal-content">
+      <span id="close-register" class="close">&times;</span>
+      <h1>Register</h1>
+      <div class="input-box">
+        <input type="text" id="reg-username" placeholder="Username" required>
+        <span class="error-icon"><i class='bx bxs-error-circle'></i></span>
+      </div>
+      <div class="input-box">
+        <input type="password" id="reg-password" placeholder="Password" required>
+        <span class="error-icon"><i class='bx bxs-error-circle'></i></span>
+      </div>
+      <button id="reg-submit">Register</button>
+      <div id="reg-error" class="error-message"></div>
+    </div>
+  </div>
+
+
+<script>
+// Login
+  document.querySelectorAll('.wrapper .input-box input').forEach(input => {
+    input.addEventListener('input', function() {
+      this.parentElement.classList.remove('error');
+      document.getElementById("login-error").style.display = "none";
+    });
+  });
+
+  document.querySelector("form").onsubmit = async function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.wrapper .input-box').forEach(box => box.classList.remove('error'));
+
+    const usernameInput = document.getElementById("login-username");
+    const passwordInput = document.getElementById("login-password");
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+    let hasError = false;
+
+    if (!username) {
+      usernameInput.parentElement.classList.add('error');
+      hasError = true;
+    }
+    if (!password) {
+      passwordInput.parentElement.classList.add('error');
+      hasError = true;
+    }
+    const errorBlock = document.getElementById("login-error");
+    errorBlock.style.display = "none";
+    errorBlock.textContent = "";
+
+    if (hasError) {
+      errorBlock.textContent = "Please fill in all fields";
+      errorBlock.style.display = "block";
+      return;
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            user_name: username,
+            password: password
+        })
+    });
+    const data = await response.json();
+    if(response.ok) {
+        localStorage.setItem("user_id", data.user_id);
+        localStorage.setItem("user_name", data.user_name);
+        window.location.href = "/page_1.html";
+    } else {
+        errorBlock.textContent = "Error: " + (data.detail || "Somthing went wrong");
+        errorBlock.style.display = "block";
+    }
+  };
+
+  // Registration
+  document.getElementById('register-link-a').onclick = function(e) {
+    e.preventDefault();
+    document.getElementById('register-modal').style.display = 'flex';
+  };
+  document.getElementById('close-register').onclick = function() {
+    document.getElementById('register-modal').style.display = 'none';
+  };
+  window.onclick = function(e) {
+    if(e.target === document.getElementById('register-modal')) {
+      document.getElementById('register-modal').style.display = 'none';
+    }
+  };
+
+  // errors validation
+  document.querySelectorAll('#register-modal .input-box input').forEach(input => {
+    input.addEventListener('input', function() {
+      this.parentElement.classList.remove('error');
+      document.getElementById("reg-error").style.display = "none";
+    });
+  });
+
+  document.getElementById('reg-submit').onclick = async function(e) {
+    e.preventDefault();
+    document.querySelectorAll('#register-modal .input-box').forEach(box => box.classList.remove('error'));
+    const regError = document.getElementById("reg-error");
+    regError.style.display = "none";
+    regError.textContent = "";
+
+    const usernameInput = document.getElementById('reg-username');
+    const passwordInput = document.getElementById('reg-password');
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+    let hasError = false;
+
+    if (!username) {
+      usernameInput.parentElement.classList.add('error');
+      hasError = true;
+    }
+    if (!password) {
+      passwordInput.parentElement.classList.add('error');
+      hasError = true;
+    }
+    if (hasError) {
+      regError.textContent = "Please fill in all fields";
+      regError.style.display = "block";
+      return;
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ user_name: username, password: password })
+    });
+    const data = await response.json();
+    if(response.ok) {
+      document.getElementById('register-modal').style.display = 'none';
+      document.getElementById("login-username").value = username;
+      document.getElementById("login-password").value = "";
+    } else {
+      regError.textContent = "Error: " + (data.detail || "Something went wrong");
+      regError.style.display = "block";
+    }
+  };
+
+</script>
+</body>
+</html>
