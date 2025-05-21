@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Medical Analysis Portal</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      max-width: 800px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; margin-bottom: 30px; }
+    .step { margin-bottom: 30px; }
+    .step h3 { font-size: 18px; margin-bottom: 10px; }
+    .imaging-types button {
+      margin-right:10px; padding:10px 20px;
+      border:none; border-radius:6px; font-weight:bold;
+    }
+    .disabled { background:#ddd!important; cursor:not-allowed!important; color:#888!important; }
+    .active { background:#007bff; color:#fff; }
+    .scan-region img {
+      width:150px; margin-right:15px; border-radius:10px;
+      cursor:pointer; border:2px solid transparent;
+      transition:border .2s;
+    }
+    .scan-region img:hover { border-color:#007bff; }
+    .symptom-tag {
+      display:inline-block; background:#dbeafe; color:#1e40af;
+      padding:6px 10px; margin:4px; border-radius:20px; font-size:14px;
+    }
+    .symptom-tag button {
+      background:none; border:none; color:#1e40af;
+      margin-left:6px; cursor:pointer; font-weight:bold;
+    }
+    input[type=text], input[type=file] {
+      width:100%; padding:10px; margin-top:5px;
+      border:1px solid #ccc; border-radius:4px;
+    }
+    .field-group {
+      display:flex; gap:10px; margin-bottom:10px; align-items:center;
+    }
+    #symptomsSection,
+    #labSection {
+    margin-bottom: 24px;
+    }
+    .field-group input { flex:1; }
+    .remove-btn {
+      background:none; border:none; color:#dc2626;
+      font-size:18px; font-weight:bold; cursor:pointer;
+    }
+    .add-btn {
+      background:none; border:none; color:#007bff;
+      font-weight:bold; cursor:pointer; margin-top:10px;
+    }
+    .analyze-btn {
+      width:100%; padding:14px; background:#007bff;
+      color:#fff; border:none; border-radius:6px;
+      font-size:16px; cursor:pointer;
+    }
+    .image-box { margin-top:10px; }
+    .side-by-side {
+      display:flex; gap:20px; margin-top:10px;
+      justify-content:space-between; align-items:flex-start;
+    }
+    .side-by-side div { flex:1; }
+    .side-by-side label { display:block; font-weight:bold; margin-bottom:6px; }
+    .side-by-side img {
+      width:100%; display:block; border-radius:10px;
+    }
+    .disabled-section { opacity:.5; pointer-events:none; }
+    #resultBox {
+      display:none; margin-top:20px; padding:15px;
+      background:#e0fce4; color:#065f46;
+      border:1px solid #34d399; border-radius:6px;
+      font-size:18px; font-weight:bold;
+      white-space:pre-wrap; word-break:break-word;
+      overflow-x:auto; max-width:100%;
+    }
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal.patient-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 520px; /* ШИРЕ! */
+  max-width: 98vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.modal-header {
+  padding: 0;
+  background: linear-gradient(90deg, #38bdf8 0%, #2563eb 100%);
+  min-height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+}
+.modal-header h3 {
+  margin: 0 0 0 20px;
+  font-size: 1.15rem;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: .03em;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #e0e7ef;
+  cursor: pointer;
+  margin: 0 18px 0 0;
+  transition: color .2s;
+}
+.close-btn:hover {
+  color: #fff;
+}
+.modal-body {
+  padding: 24px 32px 16px 32px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.relative { position: relative; }
+.suggestions {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.suggestions li {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.suggestions li:hover {
+  background: #f3f4f6;
+}
+.no-results { color: #6b7280; }
+.link-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.98rem;
+  padding: 0 0 0 3px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.link-btn:hover { text-decoration: underline; }
+.grid-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.grid-form.hidden { display: none; }
+.modal-footer {
+  padding: 18px 28px 18px 0;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex; justify-content: flex-end; gap: 12px;
+}
+.primary-btn, .secondary-btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: background .2s;
+}
+.primary-btn {
+  background: #2563eb;
+  color: #fff;
+}
+.primary-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+.primary-btn:not(:disabled):hover {
+  background: #1e40af;
+}
+.secondary-btn {
+  background: #e5e7eb;
+  color: #374151;
+}
+.secondary-btn:hover {
+  background: #d1d5db;
+}
+
+#patientFeedback.success {
+  background: #e0fce4;
+  color: #065f46;
+  border: 1px solid #34d399;
+  border-radius: 7px;
+  padding: 10px 15px;
+  font-weight: 500;
+  font-size: 1.02rem;
+  margin-bottom: 10px;
+  text-align: center;
+  transition: opacity .4s;
+}
+#patientFeedback.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+  border-radius: 7px;
+  padding: 10px 15px;
+  font-weight: 500;
+  font-size: 1.02rem;
+  margin-bottom: 10px;
+  text-align: center;
+  transition: opacity .4s;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Medical Analysis Portal</h2>
+
+    <div class="step">
+      <h3>Select Model</h3>
+      <label><input type="radio" name="modelType" value="symptoms" checked> Symptoms-based</label>
+      <label style="margin-left:20px;"><input type="radio" name="modelType" value="lab"> Lab-based</label>
+    </div>
+
+    <div class="step">
+      <h3>Step 1: Select Imaging Type</h3>
+      <div class="imaging-types">
+        <button class="active">X-Ray</button>
+        <button class="disabled" disabled>CT Coming Soon</button>
+        <button class="disabled" disabled>MRI Coming Soon</button>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Select Scan Region</h3>
+      <div class="scan-region">
+        <img src="lungs.png" alt="Lungs" class="scan-option" data-region="Lungs">
+      </div>
+    </div>
+
+    <div id="uploadSection" class="step" style="display:none;">
+      <h3>Upload Image for <span id="regionName"></span></h3>
+      <input type="file" id="imageUpload" accept="image/*">
+      <div class="image-box">
+        <div class="side-by-side">
+          <div>
+            <label>Original</label>
+            <img id="originalPreview" style="display:none;">
+          </div>
+          <div>
+            <label>Heatmap</label>
+            <img id="heatmapPreview" style="display:none;">
+          </div>
+        </div>
+      </div>
+      <div id="resultBox"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Enter Details</h3>
+      <div id="symptomsSection">
+        <label>Symptoms</label>
+        <div id="symptomTags"></div>
+        <input type="text" id="newSymptom" placeholder="Enter symptom..." onkeydown="handleSymptomKey(event)">
+      </div>
+      <div id="labSection" class="disabled-section">
+        <label>Lab Tests</label>
+        <div id="labFields">
+          <div class="field-group">
+            <input type="text" value="Hemoglobin">
+            <input type="text" placeholder="Value">
+            <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
+          </div>
+        </div>
+        <button class="add-btn" onclick="showLabInput()">+ Add more</button>
+        <div id="labInputWrapper" style="display:none; margin-top:10px;">
+          <input type="text" id="labInput" placeholder="e.g. Glucose: 5.2" onkeydown="handleLabKey(event)">
+        </div>
+      </div>
+    </div>
+
+    <button class="analyze-btn" onclick="sendImage()">Analyze</button>
+    <button id="saveBtn" class="analyze-btn" style="margin-top:10px; display:none;">
+      Save Record
+    </button>
+  </div>
+
+    <div id="patientModal" class="modal-overlay">
+    <div class="modal patient-modal">
+        <div class="modal-header">
+        <h3>Choose or add new patient</h3>
+        <button class="close-btn" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="patientFeedback" style="display:none; margin-bottom:12px;"></div>
+        <div class="relative">
+            <input type="text" id="patientSearch" placeholder="Input firstname, surname, personal code">
+            <ul id="patientSuggestions" class="suggestions"></ul>
+        </div>
+        <button class="link-btn" id="newPatientBtn">+ Add new patient</button>
+        <form id="newPatientForm" class="grid-form hidden">
+            <input type="text" id="newFirstName" placeholder="Name">
+            <input type="text" id="newSurname"   placeholder="Surname">
+            <input type="text" id="newCode"      placeholder="Personal code">
+            <button type="button" id="createPatientBtn" class="primary-btn">Сreate</button>
+        </form>
+        </div>
+        <div class="modal-footer">
+        <button class="secondary-btn" id="closeModalBtn2">Cancel</button>
+        <button class="primary-btn" id="confirmSaveBtn" disabled>Save</button>
+        </div>
+    </div>
+    </div>
+<script>
+  let selectedRegion = "";
+  let selectedModel  = "symptoms";
+
+  document.querySelectorAll('input[name="modelType"]').forEach(r => {
+    r.addEventListener('change', () => {
+      selectedModel = r.value;
+      document.getElementById('symptomsSection')
+        .classList.toggle('disabled-section', selectedModel!=='symptoms');
+      document.getElementById('labSection')
+        .classList.toggle('disabled-section', selectedModel!=='lab');
+    });
+  });
+
+  // Scan region
+  document.querySelectorAll('.scan-option').forEach(img =>
+    img.addEventListener('click', () => {
+      selectedRegion = img.dataset.region;
+      document.getElementById('regionName').textContent = selectedRegion;
+      document.getElementById('uploadSection').style.display = 'block';
+    })
+  );
+
+  // Symptom input
+  function handleSymptomKey(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const v = e.target.value.trim();
+      if (!v) return;
+      const span = document.createElement('span');
+      span.className = 'symptom-tag';
+      span.innerHTML = `${v}<button onclick="this.parentElement.remove()">×</button>`;
+      document.getElementById('symptomTags').appendChild(span);
+      e.target.value = '';
+    }
+  }
+
+  // Lab input
+  function showLabInput() {
+    document.getElementById('labInputWrapper').style.display = 'block';
+    document.getElementById('labInput').focus();
+  }
+  function handleLabKey(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const v = e.target.value.trim();
+      if (!v.includes(':')) return;
+      const [name, value] = v.split(':').map(s=>s.trim());
+      if (!name||!value) return;
+      const fg = document.createElement('div');
+      fg.className = 'field-group';
+      fg.innerHTML = `
+        <input type="text" value="${name}">
+        <input type="text" value="${value}">
+        <button class="remove-btn">×</button>
+      `;
+      fg.querySelector('.remove-btn').onclick = () => fg.remove();
+      document.getElementById('labFields').appendChild(fg);
+      e.target.value = '';
+      document.getElementById('labInputWrapper').style.display = 'none';
+    }
+  }
+
+  // Preview original
+  document.getElementById('imageUpload').addEventListener('change', function(){
+    const f = this.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+      const img = document.getElementById('originalPreview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    r.readAsDataURL(f);
+  });
+
+  // Analyze
+  function onAnalysisSuccess(){
+    document.getElementById('saveBtn').style.display = 'block';
+  }
+  function sendImage(){
+    const input = document.getElementById('imageUpload');
+    if (!input.files.length) {
+      alert("Upload an image first");
+      return;
+    }
+    const payload = { model:selectedModel, region:selectedRegion };
+    if (selectedModel==="symptoms") {
+      payload.symptoms = Array.from(
+        document.querySelectorAll('.symptom-tag')
+      ).map(t=>t.textContent.replace('×','').trim());
+    } else {
+      payload.labs = Array.from(
+        document.querySelectorAll('#labFields .field-group')
+      ).map(g=>{
+        const [n,v] = g.querySelectorAll('input');
+        return { test:n.value, value:v.value };
+      });
+    }
+    const form = new FormData();
+    form.append("image", input.files[0]);
+    form.append("payload_raw", JSON.stringify(payload));
+
+    fetch("http://127.0.0.1:8000/analyze", {
+      method:"POST", body:form
+    })
+    .then(r=>r.ok? r.json() : r.text().then(t=>Promise.reject(t)))
+    .then(data=>{
+      // show results
+      const rb = document.getElementById('resultBox');
+
+      let filteredInfo = "-";
+      if (typeof data.filtered_symptoms !== "undefined") {
+        filteredInfo = `Symptoms: ${data.filtered_symptoms || '-'}`;
+      } else if (typeof data.filtered_labs !== "undefined") {
+        if (Array.isArray(data.filtered_labs)) {
+          // filtered_labs как массив: [{test: "...", value: ...}, ...]
+          if (data.filtered_labs.length > 0 && typeof data.filtered_labs[0] === "object") {
+            filteredInfo = "Labs:<ul>" + data.filtered_labs.map(
+              lab => `<li>${lab.test}: ${lab.value}</li>`
+            ).join('') + "</ul>";
+          } else {
+            // filtered_labs как массив строк или чисел
+            filteredInfo = "Labs: " + data.filtered_labs.join(', ');
+          }
+        } else {
+          filteredInfo = `Labs: ${data.filtered_labs}`;
+        }
+      }
+
+      rb.innerHTML = `
+        ${filteredInfo}<br>
+        Probs: ${JSON.stringify(data.predicted_probs)}
+      `;
+      rb.style.display = 'block';
+
+      // show heatmap
+      const hm = document.getElementById('heatmapPreview');
+      hm.src = `http://127.0.0.1:8000${data.boxed_url}`;
+      hm.style.display = 'block';
+      // remember URLs for save
+      window._last = {
+        original_url: data.original_url,
+        heatmap_url:  data.boxed_url
+      };
+      onAnalysisSuccess();
+    })
+    .catch(err=>alert("Error: "+err));
+  }
+
+  // Debounce utility
+  function debounce(fn, ms){
+    let t;
+    return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), ms); };
+  }
+
+  // Modal logic
+  const modal       = document.getElementById('patientModal');
+  const saveBtn     = document.getElementById('saveBtn');
+  const closeBtn    = document.getElementById('closeModalBtn');
+  const searchInput = document.getElementById('patientSearch');
+  const suggList    = document.getElementById('patientSuggestions');
+  const confirmBtn  = document.getElementById('confirmSaveBtn');
+  let selectedPatient = null;
+
+  saveBtn.onclick = ()=> modal.style.display = 'flex';
+  closeBtn.onclick= ()=> modal.style.display = 'none';
+
+  // --- GET user_id for all actions ---
+  function getUserId() {
+    const user_id = localStorage.getItem("user_id");
+    if (!user_id) {
+      alert("Error! You are not autorized!");
+      window.location.href = "index.html"; 
+      throw new Error("Not logged in");
+    }
+    return user_id;
+  }
+
+  // Search patients
+  searchInput.addEventListener('input', debounce(async e=>{
+    const q = e.target.value.trim();
+    if (q.length<2) { suggList.innerHTML=''; return; }
+    const user_id = getUserId();
+    try {
+      const res  = await fetch(`http://127.0.0.1:8000/patients/search?q=${encodeURIComponent(q)}&user_id=${user_id}`);
+      const list = await res.json();
+      console.log('search result:', list);
+      if (!list.length) {
+        suggList.innerHTML = '<li class="no-results">No matches</li>';
+        return;
+      }
+      suggList.innerHTML = list.map(p=>`
+        <li
+          data-id="${p.id}"
+          data-first="${p.firstname}"
+          data-last="${p.surname}"
+          data-code="${p.personal_code}"
+        >
+          ${p.firstname} ${p.surname} (${p.personal_code})
+        </li>
+      `).join('');
+    } catch(err) {
+      console.error(err);
+      suggList.innerHTML = '<li class="no-results">Error</li>';
+    }
+  }, 300));
+
+  // Pick from suggestions
+  suggList.addEventListener('click', e=>{
+    const li = e.target.closest('li[data-id]');
+    if (!li) return;
+    selectedPatient = {
+      id: li.dataset.id,
+      first: li.dataset.first,
+      last: li.dataset.last,
+      code: li.dataset.code
+    };
+    searchInput.value = `${selectedPatient.first} ${selectedPatient.last}`;
+    suggList.innerHTML = '';
+    confirmBtn.disabled = false;
+  });
+
+  // New patient form
+  document.getElementById('newPatientBtn').onclick = ()=>{
+    document.getElementById('newPatientForm').style.display = 'block';
+  };
+  document.getElementById('createPatientBtn').onclick = async ()=>{
+    const fn = document.getElementById('newFirstName').value.trim();
+    const ln = document.getElementById('newSurname').value.trim();
+    const pc = document.getElementById('newCode').value.trim();
+    const user_id = getUserId();
+    const res = await fetch("http://127.0.0.1:8000/patients", {
+      method:"POST",
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ 
+        firstname:fn, 
+        surname:ln, 
+        personal_code:pc,
+        user_id: user_id 
+      })
+    });
+    const p = await res.json();
+    selectedPatient = p;
+    searchInput.value = `${p.firstname} ${p.surname}`;
+    confirmBtn.disabled = false;
+    document.getElementById('newPatientForm').style.display = 'none';
+  };
+
+  // Save record
+  confirmBtn.onclick = async ()=>{
+    if (!selectedPatient) return;
+    const payload = {
+      patient_id:   selectedPatient.id,
+      model:        selectedModel,
+      region:       selectedRegion,
+      original_url: window._last.original_url,
+      heatmap_url:  window._last.heatmap_url,
+      notes:        ""
+    };
+    if (selectedModel==="symptoms") {
+      payload.symptoms = Array.from(document.querySelectorAll('.symptom-tag'))
+                            .map(t=>t.textContent.replace('×','').trim());
+    } else {
+      payload.labs = Array.from(document.querySelectorAll('#labFields .field-group'))
+                    .map(g=>{
+                      const [n,v] = g.querySelectorAll('input');
+                      return { test:n.value, value:v.value };
+                    });
+    }
+    const feedback = document.getElementById('patientFeedback');
+    try {
+      const res = await fetch("http://127.0.0.1:8000/records", {
+        method:"POST",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        feedback.textContent = "Error: " + msg;
+        feedback.className = "error";
+        feedback.style.display = "block";
+        return;
+      } else {
+        feedback.textContent = "Record was saved to database";
+        feedback.className = "success";
+        feedback.style.display = "block";
+        setTimeout(() => {
+          feedback.style.display = "none";
+          closeModal();
+          saveBtn.style.display = 'none';
+        }, 1600); 
+      }
+    } catch (e) {
+      feedback.textContent = "Error: " + e;
+      feedback.className = "error";
+      feedback.style.display = "block";
+    }
+  };
+
+</script>
+
+</body>
+</html>
